@@ -4,4 +4,5 @@ module.exports = function (app) {
   });
   app.use('/upload/article', require('./upload_article'));
   app.use('/articles', require('./getArticles'));
-}
+  app.use('/comment', require('./comment'));
+};

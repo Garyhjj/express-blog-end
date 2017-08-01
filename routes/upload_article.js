@@ -4,7 +4,6 @@ var ArticleModel = require('../models/article');
 
 
 router.post('/', function(req, res, next) {
-  console.log(req.body);
     ArticleModel.create(req.body).then((arti) => {
       console.log(arti);
       res.send(arti)
