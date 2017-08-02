@@ -1,5 +1,6 @@
 var Article = require('../lib/mongo').Article;
 var CommentModel = require('./comments');
+var marked = require('marked');
 // 将 post de content 从 markdown 转换成 html
 Article.plugin('contentToHtml', {
     afterFind: function(posts) {
@@ -64,7 +65,22 @@ module.exports = {
                 _id: postId
             })
             .addCreatedAt()
+            .contentToHtml()
             .labelToArray()
+            .exec();
+    },
+
+    // 通过文章 id 获取一篇文章
+    getOriginalArticleById: function(postId) {
+        return Article.findOne({
+                _id: postId
+            })
+            .exec();
+    },
+
+    //  更新文章
+    updateArticle: function(post) {
+        return Article.save(post)
             .exec();
     },
 
@@ -74,6 +90,7 @@ module.exports = {
                 type: articleType
             })
             .addCreatedAt()
+            .contentToHtml()
             .labelToArray()
             .exec();
     },
@@ -84,6 +101,7 @@ module.exports = {
                 label: eval("/" + articleLabel + "/")
             })
             .addCreatedAt()
+            .contentToHtml()
             .labelToArray()
             .exec();
     },
@@ -103,6 +121,7 @@ module.exports = {
               ]
             })
             .addCreatedAt()
+            .contentToHtml()
             .labelToArray()
             .exec();
     },
@@ -123,56 +142,8 @@ module.exports = {
             })
             .addCreatedAt()
             .labelToArray()
+            .contentToHtml()
             .addCommentsCount()
             .exec();
-    },
-
-    // 通过文章 id 给 pv 加 1
-    incPv: function incPv(postId) {
-        return Article
-            .update({
-                _id: postId
-            }, {
-                $inc: {
-                    pv: 1
-                }
-            })
-            .exec();
-    },
-
-    // 通过文章 ID 获取一篇原生文章（编辑文章）
-    getRawArticleById: function getRawArticleById(postId) {
-        return Article.findOne({
-                _id: postId
-            })
-            .populate({
-                path: 'author',
-                model: 'User'
-            })
-            .exec();
-    },
-
-    // 通过用户id 和 文章ID 更新一篇文章
-    updateArticleById: function updateArticleById(postId, author, data) {
-        return Article.update({
-            author: author,
-            _id: postId
-        }, {
-            $set: data
-        }).exec();
-    },
-
-    // 通过用户 id 和文章 id 删除一篇文章
-    delArticleById: function delArticleById(postId, author) {
-        return Article.remove({
-                author: author,
-                _id: postId
-            }).exec()
-            .then(function(res) {
-                // 文章删除后，再删除该文章下的所有留言
-                if (res.result.ok && res.result.n > 0) {
-                    return CommentModel.delCommentsByArticleId(postId);
-                }
-            });
     }
 };

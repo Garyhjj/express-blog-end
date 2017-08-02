@@ -1,22 +1,25 @@
 var express = require('express');
 var router = express.Router();
 var commentModel = require('../models/comments');
+var objectIdToTimestamp = require('objectid-to-timestamp');
+var marked = require('marked');
 
 router.get('/', function(req, res, next) {
-    commentModel.create({
-      author: 'hhh',
-      url: '',
-      email: '',
-      reply: 'aaa',
-      content: 'hello,good',
-      articleId: '597ec03def7a201b70bfb39a'
-    }).then((comment) => {
-      console.log(comment);
-    });
-    commentModel.getComments('597ec03def7a201b70bfb39a').then((com) => {
-      res.send(com)
+    let target = req.query.articleId;
+    commentModel.getComments(target).then((com) => {
+      res.send(com);
     })
+});
 
+router.post('/create', function(req, res, next){
+  let comment = req.body;
+  commentModel.create(comment).then((com) => {
+    let newCom = com.ops[0];
+    newCom.create_at = objectIdToTimestamp(newCom._id);
+    newCom.content = newCom.content.replace(/script/g,"```"+"script"+"```");
+    newCom.content = marked(newCom.content);
+    res.send(newCom);
+  });
 });
 
 module.exports = router;

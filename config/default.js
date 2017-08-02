@@ -7,6 +7,6 @@ module.exports = {
   },
   mongodb: 'mongodb://localhost:27017/ng4-blog',
   jwt: {
-    secret:'myBlog'
+    secret:'myBlogjj'
   }
 };
