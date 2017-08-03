@@ -3,6 +3,7 @@ var router = express.Router();
 var commentModel = require('../models/comments');
 var objectIdToTimestamp = require('objectid-to-timestamp');
 var marked = require('marked');
+var check = require('../middlewares/check');
 
 router.get('/', function(req, res, next) {
     let target = req.query.articleId;
@@ -11,7 +12,7 @@ router.get('/', function(req, res, next) {
     })
 });
 
-router.post('/create', function(req, res, next){
+router.post('/create', check.checkComment, function(req, res, next){
   let comment = req.body;
   commentModel.create(comment).then((com) => {
     let newCom = com.ops[0];

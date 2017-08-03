@@ -1,7 +1,9 @@
 var Article = require('../lib/mongo').Article;
 var CommentModel = require('./comments');
 var marked = require('marked');
-// 将 post de content 从 markdown 转换成 html
+var config = require('config-lite')({});
+
+// 将 article 的 content 从 markdown 转换成 html
 Article.plugin('contentToHtml', {
     afterFind: function(posts) {
         return posts.map(function(post) {
@@ -32,7 +34,7 @@ Article.plugin('labelToArray', {
     }
 });
 
-// 给 post 添加留言数 commentsCount
+// 给 article 添加留言数 commentsCount
 Article.plugin('addCommentsCount', {
     afterFind: function(posts) {
         return Promise.all(posts.map(function(post) {
@@ -52,11 +54,30 @@ Article.plugin('addCommentsCount', {
         return post;
     }
 });
-
+// 给 article 增加前后两条的信息
+Article.plugin('addAroundArticle', {
+    afterFindOne: function(post) {
+        if (post) {
+          return Promise.all([Article.find({'_id':{$gt : post._id}}).limit(1),Article.find({'_id':{$lt : post._id}}).sort({_id:-1}).limit(1)])
+          .then((res) => {
+            post.previous = res[0].length>0?{_id:res[0][0]._id,title:res[0][0].title}:'';
+            post.next = res[1].length>0?{_id:res[1][0]._id,title:res[1][0].title}:'';
+            return post;
+          });
+        }
+        return post;
+    }
+});
 module.exports = {
     // 创建一篇文章
     create: function create(post) {
         return Article.create(post).exec();
+    },
+
+    // 通过条件way获得文章总数
+    getArticlesCount: function(way) {
+      way = way || {};
+      return Article.count(way).exec();
     },
 
     // 通过文章 id 获取一篇文章
@@ -67,7 +88,19 @@ module.exports = {
             .addCreatedAt()
             .contentToHtml()
             .labelToArray()
+            .addAroundArticle()
             .exec();
+    },
+
+    // 分页获取文章
+    getArticlesByPage: function(page) {
+      let limit = config.articles.onePage;
+      return Article.find().sort({_id:-1}).skip((page-1)*limit).limit(limit)
+              .addCreatedAt()
+              .contentToHtml()
+              .labelToArray()
+              .addCommentsCount()
+              .exec();
     },
 
     // 通过文章 id 获取一篇文章
@@ -78,6 +111,16 @@ module.exports = {
             .exec();
     },
 
+    // 获得所有文章
+    getArticles: function() {
+        return Article.find().sort({_id:-1})
+            .addCreatedAt()
+            .contentToHtml()
+            .labelToArray()
+            .addCommentsCount()
+            .exec();
+    },
+
     //  更新文章
     updateArticle: function(post) {
         return Article.save(post)
@@ -85,24 +128,28 @@ module.exports = {
     },
 
     // 通过文章 type 获取所有文章
-    getArticleByType: function(articleType) {
+    getArticleByType: function(articleType,page) {
+        let limit = config.articles.onePage;
         return Article.find({
                 type: articleType
-            })
+            }).sort({_id:-1}).skip((page-1)*limit).limit(limit)
             .addCreatedAt()
             .contentToHtml()
             .labelToArray()
+            .addCommentsCount()
             .exec();
     },
 
     // 通过文章 label 获取所有文章
-    getArticleByLabel: function(articleLabel) {
+    getArticleByLabel: function(articleLabel,page) {
+        let limit = config.articles.onePage;
         return Article.find({
                 label: eval("/" + articleLabel + "/")
-            })
+            }).sort({_id:-1}).skip((page-1)*limit).limit(limit)
             .addCreatedAt()
             .contentToHtml()
             .labelToArray()
+            .addCommentsCount()
             .exec();
     },
 
@@ -123,27 +170,8 @@ module.exports = {
             .addCreatedAt()
             .contentToHtml()
             .labelToArray()
+            .addCommentsCount()
             .exec();
     },
 
-    // 按创建时间降序获取所有用户文章或者某个特定用户的所有文章页
-    getArticles: function getArticles(author) {
-        var query = {};
-        if (author) {
-            query.author = author;
-        }
-        return Article.find(query)
-            .populate({
-                path: 'author',
-                model: 'User'
-            })
-            .sort({
-                _id: -1
-            })
-            .addCreatedAt()
-            .labelToArray()
-            .contentToHtml()
-            .addCommentsCount()
-            .exec();
-    }
 };

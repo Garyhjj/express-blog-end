@@ -3,25 +3,27 @@ var router = express.Router();
 var ArticleModel = require('../models/article');
 var querystring = require('querystring');
 var moment = require('moment');
+var check = require('../middlewares/check');
+var config = require('config-lite')({});
 
 router.get('/', function(req, res, next) {
     let page = req.query.page || 1;
-    ArticleModel.getArticles('黄嘉骏').then((articles) => {
-        let result = {
-            page: page,
-            total: articles.length,
-            articles: articles.slice((page - 1) * 2, page * 2)
-        };
-        res.send(result);
+    Promise.all([ArticleModel.getArticlesByPage(page),ArticleModel.getArticlesCount()]).then((artMes) => {
+      let result = {
+          onePage: config.articles.onePage,
+          page: page,
+          total: artMes[1],
+          articles: artMes[0]
+      };
+      res.send(result);
     });
-
 });
-router.post('/create', function(req, res, next) {
+router.post('/create', check.checkLogin, function(req, res, next) {
     ArticleModel.create(req.body).then((arti) => {
         res.send(arti.ops[0]);
     });
 });
-router.post('/update', function(req, res, next) {
+router.post('/update', check.checkLogin, function(req, res, next) {
     let article = req.body;
     ArticleModel.updateArticle(article).then((status) => {
         res.send(status);
@@ -59,41 +61,46 @@ router.get('/conclude', function(req, res, next) {
 router.get('/type', function(req, res, next) {
     let type = req.query.type;
     let page = req.query.page;
-    ArticleModel.getArticleByType(type).then((articles) => {
-        let art = sendArticlesByPage(articles, page, 2);
-        res.send({
-            page: page,
-            articles: art,
-            total: articles.length
-        });
+    Promise.all([ArticleModel.getArticleByType(type,page),ArticleModel.getArticlesCount({
+      type:type
+    })]).then((artMes) => {
+      res.send({
+          onePage: config.articles.onePage,
+          page: page,
+          articles: artMes[0],
+          total: artMes[1]
+      });
     });
 });
 
 router.get('/label', function(req, res, next) {
     let label = req.query.label;
     let page = req.query.page;
-    ArticleModel.getArticleByLabel(label).then((articles) => {
-        articles = articles.filter((art) => {
-            return art.label.indexOf(label) > -1;
-        });
-        let art = sendArticlesByPage(articles, page, 2);
-        res.send({
-            page: page,
-            articles: art,
-            total: articles.length
-        });
+    Promise.all([ArticleModel.getArticleByLabel(label,page),ArticleModel.getArticlesCount({
+      label:eval("/" + label + "/")
+    })]).then((artMes) => {
+      let arts = artMes[0].filter((art) => {
+          return art.label.indexOf(label) > -1;
+      });
+      res.send({
+          onePage: config.articles.onePage,
+          page: page,
+          articles: arts,
+          total: artMes[1]
+      });
     });
 });
 
 router.get('/date', function(req, res, next) {
     let date = req.query.date;
     let page = req.query.page;
-    ArticleModel.getArticles('黄嘉骏').then((articles) => {
+    ArticleModel.getArticles().then((articles) => {
         articles = articles.filter((art) => {
             return Date.parse(moment(art.create_at).format('YYYY-MM-01')) === +date
         });
-        let art = sendArticlesByPage(articles, page, 2);
+        let art = sendArticlesByPage(articles, page, config.articles.onePage);
         res.send({
+            onePage: config.articles.onePage,
             page: page,
             articles: art,
             total: articles.length
@@ -104,10 +111,10 @@ router.get('/date', function(req, res, next) {
 router.get('/key', function(req, res, next) {
     let key = req.query.key;
     let page = req.query.page;
-    console.log(req.query);
     ArticleModel.getArticleByKey(key).then((articles) => {
-        let art = sendArticlesByPage(articles, page, 2);
+        let art = sendArticlesByPage(articles, page, config.articles.onePage);
         res.send({
+            onePage: config.articles.onePage,
             page: page,
             articles: art,
             total: articles.length
@@ -134,7 +141,7 @@ function conclude(res) {
 
         }
     };
-    ArticleModel.getArticles('黄嘉骏').then((articles) => {
+    ArticleModel.getArticles().then((articles) => {
         articles.forEach((art) => {
             detail.type[art.type] = detail.type[art.type] ? detail.type[art.type] + 1 : 1;
             art.label.forEach((label) => {

@@ -1,5 +1,5 @@
 var express = require('express');
-var config = require('config-lite');
+var config = require('config-lite')({});
 var router = express.Router();
 var UserModel = require('../models/users');
 var sha1 = require('sha1');
@@ -20,10 +20,10 @@ var checkLogin = require('../middlewares/check').checkLogin;
 //
 //   UserModel.create({
 //     accountName:'garyhjj',
-//     password: 'M*245015'
-//   }).then((res) => {
-//     console.log(res);
-//     res.send(res)
+//     password: sha1('M*245015')
+//   }).then((data) => {
+//     console.log(data);
+//     res.send(data)
 //   });
 //
 // });
@@ -43,8 +43,7 @@ router.post('/', function(req, res, next) {
       }else{
         var token = jwt.sign({
           accountName: accountName
-        }, config.jwt.secret, { expiresIn: 1000*60*30 });
-        console.log(token);
+        }, config.jwt.secret, { expiresIn: 60*30 });//是以秒为单位
         res.json({user:user,token:token});
       }
     }
