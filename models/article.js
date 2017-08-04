@@ -74,6 +74,11 @@ module.exports = {
         return Article.create(post).exec();
     },
 
+    // 通过_id 删除文章
+    deleteArticleById: function(_id) {
+      return Article.remove({_id:_id}).exec();
+    },
+
     // 通过条件way获得文章总数
     getArticlesCount: function(way) {
       way = way || {};

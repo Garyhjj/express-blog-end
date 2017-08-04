@@ -18,6 +18,19 @@ router.get('/', function(req, res, next) {
       res.send(result);
     });
 });
+router.delete('/', check.checkLogin, function(req, res, next) {
+  let id = req.query.id;
+  if(!id) {
+    res.send(404);
+  }
+  ArticleModel.deleteArticleById(id).then((result) => {
+    if(result.result.n === 0) {
+      res.send(404);
+    }
+    res.send(200);
+  });
+
+});
 router.post('/create', check.checkLogin, function(req, res, next) {
     ArticleModel.create(req.body).then((arti) => {
         res.send(arti.ops[0]);
