@@ -15,7 +15,6 @@ router.get('/', function(req, res, next) {
 router.post('/create', check.checkComment, function(req, res, next){
   let comment = req.body;
   comment.status = req.isAdmin? 0 : 1;
-  console.log(req.isAdmin);
   commentModel.create(comment).then((com) => {
     let newCom = com.ops[0];
     newCom.create_at = objectIdToTimestamp(newCom._id);
