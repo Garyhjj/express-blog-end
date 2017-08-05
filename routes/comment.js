@@ -14,6 +14,8 @@ router.get('/', function(req, res, next) {
 
 router.post('/create', check.checkComment, function(req, res, next){
   let comment = req.body;
+  comment.status = req.isAdmin? 0 : 1;
+  console.log(req.isAdmin);
   commentModel.create(comment).then((com) => {
     let newCom = com.ops[0];
     newCom.create_at = objectIdToTimestamp(newCom._id);
@@ -21,6 +23,29 @@ router.post('/create', check.checkComment, function(req, res, next){
     newCom.content = marked(newCom.content);
     res.send(newCom);
   });
+});
+
+router.get('/unreadCount', check.checkLogin, function(req, res, next) {
+    commentModel.getNewCommentsCount().then((count) => {
+      res.send({count:count});
+    });
+});
+
+router.get('/newComments', check.checkLogin, function(req, res, next) {
+    commentModel.getNewComments().then((coms) => {
+      res.send(coms);
+    });
+});
+router.get('/readed', check.checkLogin, function(req, res, next) {
+    let articleId = req.query.id;
+    if(!articleId) {
+      res.status(404);
+      res.send('没参数');
+    } else {
+      commentModel.readNewCommentsByArticleId(articleId).then((status) => {
+        res.send(status);
+      });
+    }
 });
 
 module.exports = router;

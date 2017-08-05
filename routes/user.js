@@ -20,7 +20,7 @@ var checkLogin = require('../middlewares/check').checkLogin;
 //
 //   UserModel.create({
 //     accountName:'garyhjj',
-//     password: sha1('M*245015')
+//     password: sha1('123456')
 //   }).then((data) => {
 //     console.log(data);
 //     res.send(data)

@@ -21,7 +21,7 @@ module.exports = {
 
 
   // 通过文章 id 获取该文章下所有留言，按留言创建时间升序
-  getComments: function getComments(articleId) {
+  getComments: function(articleId) {
     return Comment
       .find({ articleId: articleId })
       .sort({ _id: 1 })
@@ -31,7 +31,28 @@ module.exports = {
   },
 
   // 通过文章 id 获取该文章下留言数
-  getCommentsCount: function getCommentsCount(articleId) {
+  getCommentsCount: function(articleId) {
     return Comment.count({ articleId: articleId }).exec();
-  }
+  },
+
+  // 获得新留言的数目
+  getNewCommentsCount: function() {
+    return Comment.count({ status: 1 }).exec();
+  },
+
+  // 获得所有新留言,按留言创建时间降序
+  getNewComments: function() {
+    return Comment.find({ status: 1 })
+                  .sort({ _id: -1 })
+                  .addCreatedAt()
+                  .contentToHtml()
+                  .exec();
+  },
+
+  // 根据文章id将所有未读消息改成已读
+  readNewCommentsByArticleId: function(id) {
+    return Comment.update({articleId:id,status:1},{$set:{status:0}},{multi:true}).exec();
+  },
+
+
 };

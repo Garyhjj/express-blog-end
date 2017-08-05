@@ -16,19 +16,20 @@ module.exports = {
   },
 
   checkComment: function (req, res, next){
-    let comment = req.body;
-    if(comment.author != conv.tify(config.author) && comment.author != conv.sify(config.author)) {
-      next();
-    } else {
-      var token = req.headers.authorization;
-      jwt.verify(token,config.jwt.secret, function(err, decoded) {
-        if(err){
-          res.status(401);
-          res.send('token已超时');
-        }else {
+    var token = req.headers.authorization;
+    jwt.verify(token,config.jwt.secret, function(err, decoded) {
+      if(err){
+        let comment = req.body;
+        if(comment.author != conv.tify(config.author) && comment.author != conv.sify(config.author)) {
           next();
+        } else {
+          res.status(401);
+          res.send('游客不能使用作者名称');
         }
-      });
-    }
+      }else {
+        req.isAdmin = true;
+        next();
+      }
+    });
   }
 };
