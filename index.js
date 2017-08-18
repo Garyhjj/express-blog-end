@@ -1,6 +1,7 @@
 var express = require('express');
 var cors = require('cors');
 var path = require('path');
+var logger = require('morgan');
 // var session = require('express-session');
 // var MongoStore = require('connect-mongo')(session);
 var config = require('config-lite')({});
@@ -13,6 +14,7 @@ var app = express();
 app.use(cors());
 //设置跨域访问
 
+app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
