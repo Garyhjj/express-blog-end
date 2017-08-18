@@ -162,13 +162,13 @@ module.exports = {
     getArticleByKey: function(Key) {
         return Article.find({
                 $or: [{
-                    title: eval("/" + Key + "/")
+                    title: eval("/" + Key + "/i")
                 }, {
-                    content: eval("/" + Key + "/")
+                    content: eval("/" + Key + "/i")
                 }, {
-                    type: eval("/" + Key + "/")
+                    type: eval("/" + Key + "/i")
                 }, {
-                    label: eval("/" + Key + "/")
+                    label: eval("/" + Key + "/i")
                 }
               ]
             })

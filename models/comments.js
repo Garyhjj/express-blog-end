@@ -5,7 +5,7 @@ var marked = require('marked');
 Comment.plugin('contentToHtml', {
   afterFind: function (comments) {
     return comments.map(function (comment) {
-      comment.content = comment.content.replace(/script/g,"```"+"script"+"```");
+      comment.content = comment.content.replace(/script/gi,"```"+"script"+"```");
       comment.content = marked(comment.content);
       return comment;
     });
