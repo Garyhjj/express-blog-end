@@ -66,6 +66,16 @@ Article.plugin('addAroundArticle', {
           });
         }
         return post;
+    },
+    afterFind: function(posts) {
+      return Promise.all(posts.map(function(post) {
+          return Promise.all([Article.find({'_id':{$gt : post._id}}).limit(1),Article.find({'_id':{$lt : post._id}}).sort({_id:-1}).limit(1)])
+          .then((res) => {
+            post.previous = res[0].length>0?{_id:res[0][0]._id,title:res[0][0].title}:'';
+            post.next = res[1].length>0?{_id:res[1][0]._id,title:res[1][0].title}:'';
+            return post;
+          });
+      }));
     }
 });
 module.exports = {
@@ -105,6 +115,7 @@ module.exports = {
               .contentToHtml()
               .labelToArray()
               .addCommentsCount()
+              .addAroundArticle()
               .exec();
     },
 
@@ -120,9 +131,7 @@ module.exports = {
     getArticles: function() {
         return Article.find().sort({_id:-1})
             .addCreatedAt()
-            .contentToHtml()
             .labelToArray()
-            .addCommentsCount()
             .exec();
     },
 
@@ -142,6 +151,7 @@ module.exports = {
             .contentToHtml()
             .labelToArray()
             .addCommentsCount()
+            .addAroundArticle()
             .exec();
     },
 
@@ -155,6 +165,7 @@ module.exports = {
             .contentToHtml()
             .labelToArray()
             .addCommentsCount()
+            .addAroundArticle()
             .exec();
     },
 
@@ -176,6 +187,7 @@ module.exports = {
             .contentToHtml()
             .labelToArray()
             .addCommentsCount()
+            .addAroundArticle()
             .exec();
     },
 
