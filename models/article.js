@@ -131,7 +131,9 @@ module.exports = {
     getArticles: function() {
         return Article.find().sort({_id:-1})
             .addCreatedAt()
+            .contentToHtml()
             .labelToArray()
+            .addAroundArticle()
             .exec();
     },
 
