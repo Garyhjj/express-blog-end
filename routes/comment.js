@@ -42,7 +42,9 @@ router.get('/readed', check.checkLogin, function(req, res, next) {
       res.send('没参数');
     } else {
       commentModel.readNewCommentsByArticleId(articleId).then((status) => {
-        res.send(status);
+        commentModel.getNewCommentsCount().then((count) => {
+          res.send({count:count});
+        });
       });
     }
 });
