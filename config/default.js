@@ -7,7 +7,8 @@ module.exports = {
   // },
   mongodb: 'mongodb://localhost:27017/ng4-blog',
   jwt: {
-    secret:'myBlogjj'
+    secret:'myBlogjj',
+    scheme: 'huang'
   },
   author:'黄嘉骏',
   articles:{

@@ -5,6 +5,7 @@ var querystring = require('querystring');
 var moment = require('moment');
 var check = require('../middlewares/check');
 var config = require('config-lite')({});
+var passport = require('../passport');
 
 router.get('/', function(req, res, next) {
     let page = req.query.page || 1;
@@ -36,7 +37,7 @@ router.post('/create', check.checkLogin, function(req, res, next) {
         res.send(arti.ops[0]);
     });
 });
-router.post('/update', check.checkLogin, function(req, res, next) {
+router.post('/update', passport.authenticate('jwt', { session: false }), function(req, res, next) {
     let article = req.body;
     ArticleModel.updateArticle(article).then((status) => {
         res.send(status);

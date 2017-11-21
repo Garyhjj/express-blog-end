@@ -44,7 +44,7 @@ router.post('/', function(req, res, next) {
         var token = jwt.sign({
           accountName: accountName
         }, config.jwt.secret, { expiresIn: 60*30 });//是以秒为单位
-        res.json({user:user,token:token});
+        res.json({user:user,token:config.jwt.scheme +' ' + token});
       }
     }
   });
