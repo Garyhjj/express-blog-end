@@ -5,10 +5,9 @@ var querystring = require('querystring');
 var moment = require('moment');
 var check = require('../middlewares/check');
 var config = require('config-lite')({});
-var cors = require('cors');
 var passport = require('../passport');
 
-router.get('/', cors(), function(req, res, next) {
+router.get('/', function(req, res, next) {
     let page = req.query.page || 1;
     Promise.all([ArticleModel.getArticlesByPage(page),ArticleModel.getArticlesCount()]).then((artMes) => {
       let result = {
@@ -69,7 +68,7 @@ router.get('/original', function(req, res, next) {
         res.send(null);
     }
 });
-router.get('/conclude', cors(), function(req, res, next) {
+router.get('/conclude', function(req, res, next) {
     conclude(res);
 });
 
